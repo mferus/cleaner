@@ -71,7 +71,6 @@ class Cleaner:
     Attributes:
         directory (str): path to directory to make
         folders (list): list containing all folders in directory
-        # extensions (list): list containing all extensions supported by our current setup
     """
     def __init__(self, directory):
         self.directory = directory
