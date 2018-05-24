@@ -61,8 +61,7 @@ class File:
             return False
 
     def get_name_with_escape_signs(self):
-        escape_signs = [" ", "(", ")"]
-        return ''.join([character if character not in escape_signs else "\\" + character for character in self.name])
+        return ''.join(["\\" + character for character in self.name])
 
 
 class Cleaner:
@@ -121,8 +120,8 @@ class Cleaner:
 
         for file in clean_list:
             temp_file = File(file)
-            # get extension from file
 
+            # get extension from file
             temp_extension = temp_file.get_extension()
             if not temp_extension:
                 temp_extension = self._file_with_no_extension(temp_file)
@@ -171,9 +170,13 @@ class Cleaner:
         :param extension: unsupported extension
         :return folder ready where program should move file
         """
+
+        possibility_list = {str(folder): folder for folder in self.folders}
+
         while True:
             create_folder = input(f"File {file} has unsupported extension: '{extension}'.\n "
-                                  f"Do you want to create new folder? [y/N]: ")
+                                  f"Do you want to create new folder? [y/N]:\n"
+                                  f"(Folders: {', '.join(possibility_list.keys())}) ")
             if create_folder.lower() == "y":
                 return self._create_folder(extension)
 
@@ -208,8 +211,7 @@ class Cleaner:
         """
         possibility_list = {str(folder): folder for folder in self.folders}
         while True:
-            directory = input(f"From list below pick folder where files with {extension} extension should be moved\n"
-                              f"{', '.join(possibility_list.keys())}\n")
+            directory = input(f"Pick folder where files with {extension} extension should be moved: ")
             if directory in possibility_list:
                 possibility_list[directory].add_extension(extension)
                 return directory
@@ -239,6 +241,6 @@ class Cleaner:
 
 
 if __name__ == '__main__':
-    populate = Cleaner('/data/Pobrane')
+    populate = Cleaner('/home/mferus/Downloads')
     populate.organize()
     populate.clean()
