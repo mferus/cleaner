@@ -179,7 +179,7 @@ class Cleaner:
             if create_folder.lower() == "y":
                 return self._create_folder(extension)
 
-            elif create_folder.lower() == "n" or create_folder is None:
+            elif create_folder.lower() == "n" or create_folder == "":
                 return self._define_extension_folder(extension)
             else:
                 print("Invalid input")
