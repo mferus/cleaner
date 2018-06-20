@@ -149,7 +149,7 @@ class Cleaner:
         for file in clean_list:
             temp_file = File(file)
 
-            # get extension from file: if file has no extension checking for extension is disabled
+            # get extension from file: if file has no extension checking for extension in folders is disabled
             temp_extension = temp_file.get_extension()
             directory_name = ""
             extension_flag = False
@@ -173,18 +173,18 @@ class Cleaner:
             # checking if same object doesn't exist
             iterator = 0
             ordinal_number = ""
-
-            while iterator < len(self.folders) and not matching_flag:
+            duplicate = False
+            while iterator < len(self.folders) and not matching_flag and not duplicate:
                 if self.folders[iterator].get_name() == directory_name:
                     files = self.folders[iterator].get_files()
                     for folder_file in files:
                         if folder_file .get_name() == temp_file.get_name():
+                            duplicate = True
                             number = folder_file .get_next_number()
                             if number:
                                 ordinal_number = f" ({number+1})"
                             else:
                                 ordinal_number = " (1)"
-                    break
                 iterator += 1
 
             # create model for new file name
