@@ -1,4 +1,5 @@
 import os
+import re
 from subprocess import call
 
 
@@ -8,7 +9,7 @@ class Folder:
 
     Attributes:
         folder (str): folder name
-        extensions (list): list of assigned extensions
+        files (list): file that exists in folder
     """
     def __init__(self, folder):
         """
@@ -19,7 +20,7 @@ class Folder:
         :param folder: folder name
         """
         self.folder = folder
-        self.extensions = []
+        self.files = []
 
     def __str__(self):
         return self.folder
@@ -27,20 +28,26 @@ class Folder:
     def __repr__(self):
         return self.__str__()
 
-    def add_extension(self, item):
-        self.extensions.append(item)
+    def add_file(self, item):
+        self.files.append(item)
 
     def get_name(self):
         """
         :return: end path of the folder
         """
-        return self.folder + "/"
+        return self.folder
 
     def get_extensions(self):
         """
         :return: list of all extensions written as .val
         """
-        return self.extensions
+        return list(set([file.get_extension() for file in self.files]))
+
+    def get_file(self):
+        return self.files
+
+    def get_files(self):
+        return [file for file in self.files]
 
 
 class File:
@@ -60,8 +67,29 @@ class File:
         else:
             return False
 
+    def get_name(self):
+        return self.__str__()
+
+    def get_just_name(self):
+        if '.' in self.name:
+            return ''.join(self.name.split(".")[:-1])
+        else:
+            return self.__str__()
+
     def get_name_with_escape_signs(self):
         return ''.join(["\\" + character for character in self.name])
+
+    def get_next_number(self):
+        if re.findall(r".+ \([1-9]+\)$", self.name):
+            result = ""
+            iterator = len(self.name) - 1
+            not_found = True
+            while iterator != 0 and not_found:
+                if self.name[iterator] == "(":
+                    result = self.name[iterator:]
+                    not_found = False
+                iterator -= 1
+            return int(''.join([char for char in result if char.isdigit()]))
 
 
 class Cleaner:
@@ -75,6 +103,7 @@ class Cleaner:
     def __init__(self, directory):
         self.directory = directory
         self.folders = []
+        self.possibilities = {}
 
     def _add_folder(self, item):
         """ Adds folder obj to folder list
@@ -106,9 +135,9 @@ class Cleaner:
         for folder in downloads_list:
             temp_folder = Folder(folder)
             self._add_folder(temp_folder)
-            self._add_all_extensions(temp_folder)
+            self._add_all_files(temp_folder)
 
-    def clean(self):
+    def clean(self, underscore_flag=False):
         """
         Using stored data (found by organize method) to move files in main directory to specific folders
         """
@@ -120,22 +149,62 @@ class Cleaner:
         for file in clean_list:
             temp_file = File(file)
 
-            # get extension from file
+            # get extension from file: if file has no extension checking for extension is disabled
             temp_extension = temp_file.get_extension()
+            directory_name = ""
+            extension_flag = False
             if not temp_extension:
-                temp_extension = self._file_with_no_extension(temp_file)
+                temp_extension, directory_name = self._file_with_no_extension(temp_file)
+                extension_flag = True
+
+            # check if extension is supported: if it's not supported, it's not searching for match in folder's files
+            matching_flag = False
+            if not extension_flag:
+                checker = self._search_for_extension(temp_extension)
+                if checker[0] is True:
+                    directory_name = checker[1]
+                else:
+                    directory_name = self._create_or_define(file, temp_extension)
+                    matching_flag = True
+
+            # taking out name out of object
+            temp_position = temp_file.get_name()
+
+            # checking if same object doesn't exist
+            iterator = 0
+            ordinal_number = ""
+
+            while iterator < len(self.folders) and not matching_flag:
+                if self.folders[iterator].get_name() == directory_name:
+                    files = self.folders[iterator].get_files()
+                    for folder_file in files:
+                        if folder_file .get_name() == temp_file.get_name():
+                            number = folder_file .get_next_number()
+                            if number:
+                                ordinal_number = f" ({number+1})"
+                            else:
+                                ordinal_number = " (1)"
+                    break
+                iterator += 1
+
+            # create model for new file name
+            if extension_flag:
+                temp_extension = ""
+            else:
+                temp_extension = '.' + temp_extension
+
+            target_name = (temp_file.get_just_name() + ordinal_number + temp_extension)
 
             # create file path with escape signs
-            temp_position = temp_file.get_name_with_escape_signs()
+            target_name = get_name_with_escape_signs(target_name)
 
-            # check if extension is supported
-            checker = self._search_for_extension(temp_extension)
-            if checker[0] is True:
-                directory_name = checker[1]
-            else:
-                directory_name = self._create_or_define(file, temp_extension)
+            # change spaces to underscore
+            if underscore_flag:
+                target_name = target_name.replace(" ", "_")
 
-            call(f'mv /{self.directory}/{temp_position} /{self.directory}/{directory_name}', shell=True)
+            # calling bash command for move file
+
+            call(f'mv /{self.directory}/{temp_position} /{self.directory}/{directory_name}/{target_name}', shell=True)
 
         if not clean_list:
             print("No actions were taken")
@@ -146,21 +215,16 @@ class Cleaner:
             print(f"{len(clean_list)} files were moved")
             print(f"{', '.join(clean_list)}")
 
-    def _add_all_extensions(self, folder):
+    def _add_all_files(self, folder):
         """add all extensions found in folder
         Args:
             folder (Folder): folder as holder of possible extensions
         """
         file_list = [pos for pos in os.popen(f'ls {self.directory}/{folder.get_name()}').read().split("\n")[:-1]
                      if os.path.isfile(f"{self.directory}/{folder.get_name()}/{pos}")]
-        result = set()
         for position in file_list:
             temp_file = File(position)
-            temp_extension = temp_file.get_extension()
-            if temp_extension:
-                result.add(temp_extension)
-        for extension in result:
-            folder.add_extension(extension)
+            folder.add_file(temp_file)
 
     def _create_or_define(self, file, extension):
         """method to define solution for unsupported extensions: create new folder or add to existing one?
@@ -169,17 +233,17 @@ class Cleaner:
         :param extension: unsupported extension
         :return folder ready where program should move file
         """
-
-        possibility_list = {str(folder): folder for folder in self.folders}
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
 
         while True:
             create_folder = input(f"File {file} has unsupported extension: '{extension}'.\n "
                                   f"Do you want to create new folder? [y/N]:\n"
-                                  f"(Folders: {', '.join(possibility_list.keys())}) ")
+                                  f"(Folders: {', '.join(self.possibilities.keys())}) ")
             if create_folder.lower() == "y":
                 return self._create_folder(extension)
 
-            elif create_folder.lower() == "n" or create_folder is None:
+            elif create_folder.lower() == "n" or create_folder == "":
                 return self._define_extension_folder(extension)
             else:
                 print("Invalid input")
@@ -190,14 +254,18 @@ class Cleaner:
         :param extension: unsupported extension
         :return folder (str) created for purpose specific extension
         """
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
+
         while True:
             folder_name = input("Please enter directory name: ")
             checker = [True if char.isalnum() else False for char in folder_name]
-            if False not in checker:
+            if False not in checker and folder_name not in self.possibilities.keys():
                 call(f"mkdir {self.directory}/{folder_name}", shell=True)
                 temp_folder = Folder(folder_name)
                 self._add_folder(temp_folder)
-                temp_folder.add_extension(extension)
+                temp_file = File(extension)
+                temp_folder.add_file(temp_file)
                 return folder_name
             else:
                 print("Invalid input")
@@ -208,11 +276,13 @@ class Cleaner:
         :param extension: unsupported extension
         :return: directory (str) where file should be moved
         """
-        possibility_list = {str(folder): folder for folder in self.folders}
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
         while True:
             directory = input(f"Pick folder where files with {extension} extension should be moved: ")
-            if directory in possibility_list:
-                possibility_list[directory].add_extension(extension)
+            if directory in self.possibilities:
+                temp_file = File(extension)
+                self.possibilities[directory].add_file(temp_file)
                 return directory
             else:
                 print("Invalid input")
@@ -223,23 +293,29 @@ class Cleaner:
         :param file: file with no extension
         :return: extension for file to work with chosen folder
         """
-        possibility_list = {str(folder): folder for folder in self.folders}
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
+
         while True:
             directory = input(f"File called '{file}' has no extension.\n"
                               f"From list below pick folder where this file should be moved\n"
-                              f"{', '.join(possibility_list.keys())}\n")
-            if directory in possibility_list:
-                if possibility_list[directory].get_extensions():
-                    return possibility_list[directory].get_extensions()[0]
+                              f"{', '.join(self.possibilities.keys())}\n")
+            if directory in self.possibilities:
+                if self.possibilities[directory].get_extensions():
+                    return self.possibilities[directory].get_extensions()[0], directory
                 else:
-                    temp_extension = f"Valid-{file}"
-                    possibility_list[directory].add_extension(temp_extension)
-                    return temp_extension
+                    temp_file = File(f".Valid-{file}")
+                    self.possibilities[directory].add_file(temp_file)
+                    return temp_file, directory
             else:
                 print("Invalid input")
 
 
+def get_name_with_escape_signs(item):
+    return ''.join(["\\" + character for character in item])
+
+
 if __name__ == '__main__':
-    populate = Cleaner('/home/mferus/Downloads')
+    populate = Cleaner('/data/Pobrane')
     populate.organize()
-    populate.clean()
+    populate.clean(underscore_flag=True)
