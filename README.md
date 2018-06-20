@@ -11,4 +11,5 @@ Task ToDo:
 - GUI interface,
 - use existing file despite choosing creation option, without prompting error,
 - Windows port,
-- Wrapping into standalone program. 
+- Wrapping into standalone program, 
+- Define behaviour during situation when extensions are scattered.
