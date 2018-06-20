@@ -196,16 +196,16 @@ class Cleaner:
             target_name = (temp_file.get_just_name() + ordinal_number + temp_extension)
 
             # create file path with escape signs
-            target_name = get_name_with_escape_signs(target_name)
+            target_name = ''.join(["\\" + character for character in target_name])
 
             # change spaces to underscore
             if underscore_flag:
                 target_name = target_name.replace(" ", "_")
 
             # calling bash command for move file
-
             call(f'mv /{self.directory}/{temp_position} /{self.directory}/{directory_name}/{target_name}', shell=True)
 
+        # log to console
         if not clean_list:
             print("No actions were taken")
         elif len(clean_list) == 1:
