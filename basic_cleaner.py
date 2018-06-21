@@ -93,7 +93,7 @@ class File:
             return int(''.join([char for char in result if char.isdigit()]))
 
 
-class Cleaner:
+class DownloadsFolder:
     """
     Object to represent path for cleaning
 
@@ -319,9 +319,21 @@ class Cleaner:
         # omit files with no extension
         result = [occur for occur in result if occur is not False]
         occur_list = [result.count(phrase) for phrase in result]
+        validator = []
         if max(occur_list) > 1:
-            return False
-        return True
+            for extension in range(len(result)):
+                if occur_list[extension] > 1:
+                    validator.append(result[extension])
+            return False, list(set(validator))
+        return True, []
+
+    def find_files_with_extension(self, extension):
+        occurs = os.popen(f'find {self.directory} -maxdepth 2 -name *.{extension}')
+        result = []
+        for occur in occurs:
+            temp_path = occur.replace(f"{self.directory}/", "")[:-1]
+            result.append(temp_path)
+        return result
 
 
 def basic_clean(flag=True):
@@ -331,7 +343,7 @@ def basic_clean(flag=True):
 
     if directory != "":
         default_directory = directory
-    cleaner = Cleaner(default_directory)
+    cleaner = DownloadsFolder(default_directory)
     cleaner.organize()
     cleaner.clean(underscore_flag=flag)
 
@@ -343,9 +355,13 @@ def advanced_clean(flag=True):
 
     if directory != "":
         default_directory = directory
-    cleaner = Cleaner(default_directory)
+    cleaner = DownloadsFolder(default_directory)
     cleaner.organize()
-    if cleaner.matching_file_extensions() is False:
+    condition, valid_list = cleaner.matching_file_extensions()
+    if condition is False:
+        for record in valid_list:
+            print(cleaner.find_files_with_extension(record))
+
         print("Extensions are scattered in your folders. Please organize folders structure before running program")
     else:
         cleaner.clean(underscore_flag=flag)
