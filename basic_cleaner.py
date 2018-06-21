@@ -324,24 +324,32 @@ class Cleaner:
         return True
 
 
-def get_name_with_escape_signs(item):
-    return ''.join(["\\" + character for character in item])
-
-
-def basic_cleaner():
+def basic_clean(flag=True):
     default_directory = "/home/" + getpass.getuser() + "/Downloads"
     directory = input(f"Default directory for cleaner is {default_directory}. "
                       f"If it's not, please input correct directory")
 
     if directory != "":
         default_directory = directory
-    populate = Cleaner(default_directory)
-    populate.organize()
-    if populate.matching_file_extensions() is False:
+    cleaner = Cleaner(default_directory)
+    cleaner.organize()
+    cleaner.clean(underscore_flag=flag)
+
+
+def advanced_clean(flag=True):
+    default_directory = "/home/" + getpass.getuser() + "/Downloads"
+    directory = input(f"Default directory for cleaner is {default_directory}. "
+                      f"If it's not, please input correct directory")
+
+    if directory != "":
+        default_directory = directory
+    cleaner = Cleaner(default_directory)
+    cleaner.organize()
+    if cleaner.matching_file_extensions() is False:
         print("Extensions are scattered in your folders. Please organize folders structure before running program")
     else:
-        populate.clean(underscore_flag=True)
+        cleaner.clean(underscore_flag=flag)
 
 
 if __name__ == '__main__':
-    basic_cleaner()
+    advanced_clean()
