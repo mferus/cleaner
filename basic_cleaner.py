@@ -178,9 +178,9 @@ class Cleaner:
                 if self.folders[iterator].get_name() == directory_name:
                     files = self.folders[iterator].get_files()
                     for folder_file in files:
-                        if folder_file .get_name() == temp_file.get_name():
+                        if folder_file.get_name() == temp_file.get_name():
                             duplicate = True
-                            number = folder_file .get_next_number()
+                            number = folder_file.get_next_number()
                             if number:
                                 ordinal_number = f" ({number+1})"
                             else:
