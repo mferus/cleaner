@@ -1,6 +1,7 @@
 import os
 import re
 from subprocess import call
+import getpass
 
 
 class Folder:
@@ -310,12 +311,37 @@ class Cleaner:
             else:
                 print("Invalid input")
 
+    def matching_file_extensions(self):
+        result = []
+        for folder in self.get_folders():
+            result += folder.get_extensions()
+
+        # omit files with no extension
+        result = [occur for occur in result if occur is not False]
+        occur_list = [result.count(phrase) for phrase in result]
+        if max(occur_list) > 1:
+            return False
+        return True
+
 
 def get_name_with_escape_signs(item):
     return ''.join(["\\" + character for character in item])
 
 
-if __name__ == '__main__':
-    populate = Cleaner('/data/Pobrane')
+def basic_cleaner():
+    default_directory = "/home/" + getpass.getuser() + "/Downloads"
+    directory = input(f"Default directory for cleaner is {default_directory}. "
+                      f"If it's not, please input correct directory")
+
+    if directory != "":
+        default_directory = directory
+    populate = Cleaner(default_directory)
     populate.organize()
-    populate.clean(underscore_flag=True)
+    if populate.matching_file_extensions() is False:
+        print("Extensions are scattered in your folders. Please organize folders structure before running program")
+    else:
+        populate.clean(underscore_flag=True)
+
+
+if __name__ == '__main__':
+    basic_cleaner()
