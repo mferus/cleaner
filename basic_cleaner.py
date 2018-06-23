@@ -77,9 +77,6 @@ class File:
         else:
             return self.__str__()
 
-    def get_name_with_escape_signs(self):
-        return ''.join(["\\" + character for character in self.name])
-
     def get_next_number(self):
         if re.findall(r".+ \([1-9]+\)$", self.name):
             result = ""
@@ -172,21 +169,7 @@ class DownloadsFolder:
             temp_position = temp_file.get_name()
 
             # checking if same object doesn't exist
-            iterator = 0
-            ordinal_number = ""
-            duplicate = False
-            while iterator < len(self.folders) and not matching_flag and not duplicate:
-                if self.folders[iterator].get_name() == directory_name:
-                    files = self.folders[iterator].get_files()
-                    for folder_file in files:
-                        if folder_file.get_name() == temp_file.get_name():
-                            duplicate = True
-                            number = folder_file.get_next_number()
-                            if number:
-                                ordinal_number = f" ({number+1})"
-                            else:
-                                ordinal_number = " (1)"
-                iterator += 1
+            ordinal_number = self.check_same_objects(directory_name, temp_file, matching_flag)
 
             # create model for new file name
             if extension_flag:
@@ -208,13 +191,31 @@ class DownloadsFolder:
 
         # log to console
         if not clean_list:
-            print("No actions were taken")
+            print("No cleaning were required")
         elif len(clean_list) == 1:
             print("1 file were moved")
             print(f"{clean_list[0]}")
         else:
             print(f"{len(clean_list)} files were moved")
             print(f"{', '.join(clean_list)}")
+
+    def check_same_objects(self, directory_name, temp_file, matching_flag=False):
+        iterator = 0
+        ordinal_number = ""
+        duplicate = False
+        while iterator < len(self.folders) and not matching_flag and not duplicate:
+            if self.folders[iterator].get_name() == directory_name:
+                files = self.folders[iterator].get_files()
+                for folder_file in files:
+                    if folder_file.get_name() == temp_file.get_name():
+                        duplicate = True
+                        number = folder_file.get_next_number()
+                        if number:
+                            ordinal_number = f" ({number+1})"
+                        else:
+                            ordinal_number = " (2)"
+            iterator += 1
+        return ordinal_number
 
     def _add_all_files(self, folder):
         """add all extensions found in folder
@@ -335,37 +336,70 @@ class DownloadsFolder:
             result.append(temp_path)
         return result
 
+    def move_files_with_extension(self, extension):
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
+        files_with_extension = self.find_files_with_extension(extension)
+        folders_containing = set([file.split("/")[0] for file in files_with_extension])
+        directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
+                          f" {', '.join(folders_containing)}\n"
+                          f"Where do you want to put them?\n"
+                          f"{', '.join(self.possibilities.keys())}")
+        result = []
+        while True:
+            if directory in self.possibilities:
+                for file in files_with_extension:
+                    temp_file = File(file.split("/")[-1])
+                    if file.startswith(directory):
+                        continue
+                    else:
+                        result.append(file)
+                    ordinal_number = self.check_same_objects(directory, temp_file)
+                    target_name = (temp_file.get_just_name() + ordinal_number + temp_file.get_extension())
+                    direction_file = get_name_with_escape_signs(target_name)
+                    file = get_name_with_escape_signs(file)
+                    call(f'mv {self.directory}/{file} {self.directory}/{directory}/{direction_file}', shell=True)
+                print(f"Files:\n{', '.join(result)}\n moved to {directory} directory")
+                break
+            else:
+                print("Invalid Input")
 
-def basic_clean(flag=True):
+
+def get_name_with_escape_signs(item):
+    return ''.join(["\\" + character for character in item])
+
+
+def run_cleaning(underscore_flag=True):
     default_directory = "/home/" + getpass.getuser() + "/Downloads"
-    directory = input(f"Default directory for cleaner is {default_directory}. "
-                      f"If it's not, please input correct directory")
+    while True:
+        directory = input(f"Default directory for cleaner is {default_directory}. \n"
+                          f"If it's not, please input correct directory: ")
+        if directory != "":
+            default_directory = directory
+        if os.path.isdir(directory):
+            break
+        else:
+            print("Provided path is not a directory.")
 
-    if directory != "":
-        default_directory = directory
-    cleaner = DownloadsFolder(default_directory)
-    cleaner.organize()
-    cleaner.clean(underscore_flag=flag)
-
-
-def advanced_clean(flag=True):
-    default_directory = "/home/" + getpass.getuser() + "/Downloads"
-    directory = input(f"Default directory for cleaner is {default_directory}. "
-                      f"If it's not, please input correct directory")
-
-    if directory != "":
-        default_directory = directory
     cleaner = DownloadsFolder(default_directory)
     cleaner.organize()
     condition, valid_list = cleaner.matching_file_extensions()
     if condition is False:
-        for record in valid_list:
-            print(cleaner.find_files_with_extension(record))
+        decision = input("Extensions are scattered in your folders.\n"
+                         "Do you want to move them all to specific folder\n"
+                         "or just run basic cleaning? [move/basic]: ")
+        while True:
+            if decision.lower() == "move":
+                for record in valid_list:
+                    cleaner.move_files_with_extension(record)
+                break
+            elif decision.lower() == "basic":
+                break
+            else:
+                print("Invalid Input")
 
-        print("Extensions are scattered in your folders. Please organize folders structure before running program")
-    else:
-        cleaner.clean(underscore_flag=flag)
+    cleaner.clean(underscore_flag=underscore_flag)
 
 
 if __name__ == '__main__':
-    advanced_clean()
+    run_cleaning()
