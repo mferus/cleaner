@@ -58,6 +58,9 @@ class File:
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        return self.__str__()
+
     def create_extension(self, extension):
         if not self.get_extension():
             self.name += '.' + extension
@@ -88,6 +91,8 @@ class File:
                     not_found = False
                 iterator -= 1
             return int(''.join([char for char in result if char.isdigit()]))
+        else:
+            return 1
 
 
 class DownloadsFolder:
@@ -178,12 +183,12 @@ class DownloadsFolder:
 
     def check_same_objects(self, directory_name, temp_file):
         ordinal_number = ""
-        self.possibilities = {str(folder): folder for folder in self.folders}
         files = self.possibilities[directory_name].get_files()
 
         for file in files:
             if file.get_name() == temp_file.get_name():
                 number = file.get_next_number()
+                print(number)
                 if number:
                     ordinal_number = f" ({number+1})"
                 elif not number:
@@ -280,8 +285,7 @@ class DownloadsFolder:
             for extension in range(len(result)):
                 if occur_list[extension] > 1:
                     validator.append(result[extension])
-            return False, set(validator)
-        return True, []
+        return set(validator)
 
     def find_files_with_extension(self, extension):
         occurs = os.popen(f'find {self.directory} -maxdepth 2 -name *.{extension}')
@@ -310,7 +314,10 @@ class DownloadsFolder:
                     else:
                         result.append(file)
                     ordinal_number = self.check_same_objects(directory, temp_file)
-                    target_name = (temp_file.get_just_name() + ordinal_number + temp_file.get_extension())
+                    temp_extension = ""
+                    if temp_file.get_extension():
+                        temp_extension = '.' + temp_file.get_extension()
+                    target_name = (temp_file.get_just_name() + ordinal_number + temp_extension)
                     direction_file = get_name_with_escape_signs(target_name)
                     file = get_name_with_escape_signs(file)
                     call(f'mv {self.directory}/{file} {self.directory}/{directory}/{direction_file}', shell=True)
@@ -338,9 +345,9 @@ def run_cleaning(underscore_flag=True):
 
     cleaner = DownloadsFolder(default_directory)
     cleaner.organize()
-    condition, valid_list = cleaner.matching_file_extensions()
+    valid_list = cleaner.matching_file_extensions()
 
-    if condition is False:
+    if valid_list:
         decision = input("Extensions are scattered in your folders.\n"
                          "Do you want to move them all to specific folder\n"
                          "or just run basic cleaning? [move/basic]: ")
