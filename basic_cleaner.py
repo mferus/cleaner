@@ -188,7 +188,6 @@ class DownloadsFolder:
         for file in files:
             if file.get_name() == temp_file.get_name():
                 number = file.get_next_number()
-                print(number)
                 if number:
                     ordinal_number = f" ({number+1})"
                 elif not number:
