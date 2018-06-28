@@ -139,6 +139,7 @@ class DownloadsFolder:
             temp_folder = Folder(folder)
             self._add_folder(temp_folder)
             self._add_all_files(temp_folder)
+        self._validate_extensions()
 
     def clean(self, underscore_flag=False):
         """
@@ -271,7 +272,30 @@ class DownloadsFolder:
             else:
                 print("Invalid input")
 
-    def matching_file_extensions(self):
+    def _validate_extensions(self):
+        """
+        Interface for checking duplicates
+        """
+        valid_set = self._check_duplicate_extensions()
+
+        if valid_set:
+            decision = input("Extensions are scattered in your folders.\n"
+                             "Do you want to move them all to specific folder\n"
+                             "or just run basic cleaning? [move/basic]: ")
+            while True:
+                if decision.lower() == "move":
+                    for record in valid_set:
+                        self.move_files(record)
+                    break
+                elif decision.lower() == "basic":
+                    break
+                else:
+                    print("Invalid Input")
+
+    def _check_duplicate_extensions(self):
+        """
+        looking for duplicates in folders
+        """
         result = []
         for folder in self.get_folders():
             result += folder.get_extensions()
@@ -279,6 +303,7 @@ class DownloadsFolder:
         # omit files with no extension
         result = [occur for occur in result if occur is not ""]
         occur_list = [result.count(phrase) for phrase in result]
+
         validator = []
         if max(occur_list) > 1:
             for extension in range(len(result)):
@@ -286,19 +311,17 @@ class DownloadsFolder:
                     validator.append(result[extension])
         return set(validator)
 
-    def find_files_with_extension(self, extension):
-        occurs = os.popen(f'find {self.directory} -maxdepth 2 -name *.{extension}')
-        result = []
-        for occur in occurs:
-            temp_path = occur.replace(f"{self.directory}/", "")[:-1]
-            result.append(temp_path)
-        return result
-
-    def move_files_with_extension(self, extension):
+    def move_files(self, extension):
+        """
+        Moving files by extension to chosen directory
+        :param extension:
+        :return:
+        """
         if not self.possibilities:
             self.possibilities = {str(folder): folder for folder in self.folders}
-        files_with_extension = self.find_files_with_extension(extension)
+        files_with_extension = self.collect_extensions(extension)
         folders_containing = set([file.split("/")[0] for file in files_with_extension])
+
         directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
                           f" {', '.join(folders_containing)}\n"
                           f"Where do you want to put them?\n"
@@ -308,9 +331,7 @@ class DownloadsFolder:
             if directory in self.possibilities:
                 for file in files_with_extension:
                     temp_file = File(file.split("/")[-1])
-                    if file.startswith(directory):
-                        continue
-                    else:
+                    if not file.startswith(directory):
                         result.append(file)
                     ordinal_number = self.check_same_objects(directory, temp_file)
                     temp_extension = ""
@@ -325,13 +346,32 @@ class DownloadsFolder:
             else:
                 print("Invalid Input")
 
+    def collect_extensions(self, extension):
+        """ Collect all files with specific extension
+
+        :param extension:
+        :return:
+        """
+        occurs = os.popen(f'find {self.directory} -maxdepth 2 -name *.{extension}')
+        result = []
+        for occur in occurs:
+            temp_path = occur.replace(f"{self.directory}/", "")[:-1]
+            result.append(temp_path)
+        return result
+
 
 def get_name_with_escape_signs(item):
     return ''.join(["\\" + character for character in item])
 
 
 def run_cleaning(underscore_flag=True):
+    """ method designed for running program, like basic interface
+
+    :param underscore_flag:
+    :return:
+    """
     default_directory = "/home/" + getpass.getuser() + "/Downloads"
+
     while True:
         directory = input(f"Default directory for cleaner is {default_directory}. \n"
                           f"If it's not, please input correct directory: ")
@@ -344,22 +384,6 @@ def run_cleaning(underscore_flag=True):
 
     cleaner = DownloadsFolder(default_directory)
     cleaner.organize()
-    valid_list = cleaner.matching_file_extensions()
-
-    if valid_list:
-        decision = input("Extensions are scattered in your folders.\n"
-                         "Do you want to move them all to specific folder\n"
-                         "or just run basic cleaning? [move/basic]: ")
-        while True:
-            if decision.lower() == "move":
-                for record in valid_list:
-                    cleaner.move_files_with_extension(record)
-                break
-            elif decision.lower() == "basic":
-                break
-            else:
-                print("Invalid Input")
-
     cleaner.clean(underscore_flag=underscore_flag)
 
 
