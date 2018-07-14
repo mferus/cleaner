@@ -208,37 +208,37 @@ class DownloadsFolder:
             temp_file = File(position)
             folder.add_file(temp_file)
 
-    def _create_or_define(self, file):
+    def _create_or_define(self, unsupported_file):
         """method to define solution for unsupported extensions: create new folder or add to existing one?
 
-        :param file: file with unsupported extension
+        :param unsupported_file: file with unsupported extension
         :return folder ready where program should move file
         """
         if not self.possibilities:
             self.possibilities = {str(folder): folder for folder in self.folders}
 
-        if file.get_extension():
-            search = self._search_for_extension(file.get_extension())
+        if unsupported_file.get_extension():
+            search = self._search_for_extension(unsupported_file.get_extension())
             if search:
                 return search
-            print(f"File {file} has unsupported extension: '{file.get_extension()}'.")
+            print(f"File {unsupported_file} has unsupported extension: '{unsupported_file.get_extension()}'.")
         else:
-            print(f"File '{file}' has no extension.")
+            print(f"File '{unsupported_file}' has no extension.")
         while True:
             create_folder = input(f"Do you want to create new folder for this file? [y/N]:\n"
                                   f"(Folders: {', '.join(self.possibilities.keys())}) ")
             if create_folder.lower() == "y":
-                return self._create_folder(file)
+                return self._create_folder(unsupported_file)
 
             elif create_folder.lower() == "n" or create_folder == "":
-                return self._define_extension_folder(file)
+                return self._define_extension_folder(unsupported_file)
             else:
                 print("Invalid input")
 
-    def _create_folder(self, file):
+    def _create_folder(self, unsupported_file):
         """create folder for unsupported extension
 
-        :param file: file object
+        :param unsupported_file: file object
         :return folder (str) created for purpose specific extension
         """
 
@@ -249,25 +249,25 @@ class DownloadsFolder:
                 call(f"mkdir {self.directory}/{folder_name}", shell=True)
                 temp_folder = Folder(folder_name)
                 self._add_folder(temp_folder)
-                if file.get_extension():
-                    temp_folder.add_file(file)
+                if unsupported_file.get_extension():
+                    temp_folder.add_file(unsupported_file)
                 return folder_name
             else:
                 print("Invalid input")
 
-    def _define_extension_folder(self, file):
+    def _define_extension_folder(self, unsupported_file):
         """ Define folder for unsupported extension
 
-        :param file: unsupported file
+        :param unsupported_file: unsupported file
         :return: directory (str) where file should be moved
         """
         if not self.possibilities:
             self.possibilities = {str(folder): folder for folder in self.folders}
         while True:
-            directory = input(f"Pick folder where file {file.get_name()} extension should be moved: ")
+            directory = input(f"Pick folder where file {unsupported_file.get_name()} extension should be moved: ")
             if directory in self.possibilities:
-                if file.get_extension():
-                    self.possibilities[directory].add_file(file)
+                if unsupported_file.get_extension():
+                    self.possibilities[directory].add_file(unsupported_file)
                 return directory
             else:
                 print("Invalid input")
@@ -325,7 +325,7 @@ class DownloadsFolder:
         directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
                           f" {', '.join(folders_containing)}\n"
                           f"Where do you want to put them?\n"
-                          f"{', '.join(self.possibilities.keys())}")
+                          f"({', '.join(self.possibilities.keys())})\n")
         result = []
         while True:
             if directory in self.possibilities:
