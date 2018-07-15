@@ -173,14 +173,7 @@ class DownloadsFolder:
             call(f'mv {file_position} {new_position}', shell=True)
 
         # log to console
-        if not clean_list:
-            print("No cleaning were required")
-        elif len(clean_list) == 1:
-            print("1 file were moved:")
-            print(f"{clean_list[0]}")
-        else:
-            print(f"{len(clean_list)} files were moved:")
-            print(f"{', '.join(clean_list)}")
+        self.log_result(clean_list)
 
     def check_same_objects(self, directory_name, temp_file):
         ordinal_number = ""
@@ -343,7 +336,7 @@ class DownloadsFolder:
                         escaped_file = get_name_with_escape_signs(file)
                         call(f'mv {self.directory}/{escaped_file} {self.directory}/{directory}/{direction_file}',
                              shell=True)
-                print(f"{len(result)} Files moved to {directory} directory:\n{', '.join(result)}")
+                self.log_result(result)
                 break
             else:
                 print("Invalid Input")
@@ -360,6 +353,16 @@ class DownloadsFolder:
             temp_path = occur.replace(f"{self.directory}/", "")[:-1]
             result.append(temp_path)
         return result
+
+    @staticmethod
+    def log_result(result_list, directory=None):
+        file_verb = "file" if len(result_list) == 1 else "files"
+        directory_verb = f" to directory {directory}" if directory else ""
+        if not result_list:
+            result = "No cleaning were required"
+        else:
+            result = f"{len(result_list)} {file_verb} were moved{directory_verb}:\n{', '.join(result_list)}"
+        print(result)
 
 
 def get_name_with_escape_signs(item):
