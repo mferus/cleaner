@@ -184,8 +184,6 @@ class DownloadsFolder:
                 number = file.get_next_number()
                 if number:
                     ordinal_number = f" ({number+1})"
-                elif not number:
-                    ordinal_number = ""
                 else:
                     ordinal_number = " (2)"
         return ordinal_number
