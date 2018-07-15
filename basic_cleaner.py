@@ -176,10 +176,10 @@ class DownloadsFolder:
         if not clean_list:
             print("No cleaning were required")
         elif len(clean_list) == 1:
-            print("1 file were moved")
+            print("1 file were moved:")
             print(f"{clean_list[0]}")
         else:
-            print(f"{len(clean_list)} files were moved")
+            print(f"{len(clean_list)} files were moved:")
             print(f"{', '.join(clean_list)}")
 
     def check_same_objects(self, directory_name, temp_file):
@@ -330,18 +330,20 @@ class DownloadsFolder:
         while True:
             if directory in self.possibilities:
                 for file in files_with_extension:
-                    temp_file = File(file.split("/")[-1])
                     if not file.startswith(directory):
                         result.append(file)
-                    ordinal_number = self.check_same_objects(directory, temp_file)
-                    temp_extension = ""
-                    if temp_file.get_extension():
-                        temp_extension = '.' + temp_file.get_extension()
-                    target_name = (temp_file.get_just_name() + ordinal_number + temp_extension)
-                    direction_file = get_name_with_escape_signs(target_name)
-                    file = get_name_with_escape_signs(file)
-                    call(f'mv {self.directory}/{file} {self.directory}/{directory}/{direction_file}', shell=True)
-                print(f"Files:\n{', '.join(result)}\n moved to {directory} directory")
+
+                        temp_file = File(file.split("/")[-1])
+                        ordinal_number = self.check_same_objects(directory, temp_file)
+                        temp_extension = ""
+                        if temp_file.get_extension():
+                            temp_extension = '.' + temp_file.get_extension()
+                        target_name = (temp_file.get_just_name() + ordinal_number + temp_extension)
+                        direction_file = get_name_with_escape_signs(target_name)
+                        escaped_file = get_name_with_escape_signs(file)
+                        call(f'mv {self.directory}/{escaped_file} {self.directory}/{directory}/{direction_file}',
+                             shell=True)
+                print(f"{len(result)} Files moved to {directory} directory:\n{', '.join(result)}")
                 break
             else:
                 print("Invalid Input")
