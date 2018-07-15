@@ -356,12 +356,12 @@ class DownloadsFolder:
 
     @staticmethod
     def log_result(result_list, directory=None):
-        file_verb = "file" if len(result_list) == 1 else "files"
+        file_verb = "file was" if len(result_list) == 1 else "files were"
         directory_verb = f" to directory {directory}" if directory else ""
         if not result_list:
             result = "No cleaning were required"
         else:
-            result = f"{len(result_list)} {file_verb} were moved{directory_verb}:\n{', '.join(result_list)}"
+            result = f"{len(result_list)} {file_verb} moved{directory_verb}:\n{', '.join(result_list)}"
         print(result)
 
 
