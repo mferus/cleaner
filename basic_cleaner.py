@@ -313,8 +313,8 @@ class DownloadsFolder:
                 if self.underscore_flag:
                     target_name = target_name.replace(" ", "_")
 
-                file_position = get_name_with_escape_signs(f"/{self.directory}{origin_folder}/{temp_file.get_name()}")
-                new_position = get_name_with_escape_signs(f"/{self.directory}/{new_directory}/{target_name}")
+                file_position = get_name_with_escape_signs(f"{self.directory}{origin_folder}/{temp_file.get_name()}")
+                new_position = get_name_with_escape_signs(f"{self.directory}/{new_directory}/{target_name}")
 
                 call(f'mv {file_position} {new_position}', shell=True)
 
