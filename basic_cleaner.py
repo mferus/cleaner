@@ -107,6 +107,7 @@ class DownloadsFolder:
         self.directory = directory
         self.folders = []
         self.possibilities = {}
+        self.underscore_flag = True
 
     def _add_folder(self, item):
         """ Adds folder obj to folder list
@@ -115,6 +116,12 @@ class DownloadsFolder:
             item (Folder): Folder object to add
         """
         self.folders.append(item)
+
+    def get_flag(self):
+        return self.underscore_flag
+
+    def set_flag(self, boolean):
+        self.underscore_flag = boolean
 
     def get_folders(self):
         """
@@ -141,7 +148,7 @@ class DownloadsFolder:
             self._add_all_files(temp_folder)
         self._validate_extensions()
 
-    def clean(self, underscore_flag=False):
+    def clean(self):
         """
         Using stored data (found by organize method) to move files in main directory to specific folders
         """
@@ -149,31 +156,7 @@ class DownloadsFolder:
         # file list in main directory
         clean_list = [pos for pos in (os.popen(f'ls {self.directory}').read()).split("\n")[:-1]
                       if os.path.isfile(f"{self.directory}/{pos}")]
-
-        for file in clean_list:
-            temp_file = File(file)
-            new_directory = self._create_or_define(temp_file)
-
-            # same name case
-            ordinal_number = self.check_same_objects(new_directory, temp_file)
-
-            # extension case
-            temp_extension = ""
-            if temp_file.get_extension():
-                temp_extension = '.' + temp_file.get_extension()
-
-            target_name = temp_file.get_just_name() + ordinal_number + temp_extension
-
-            if underscore_flag:
-                target_name = target_name.replace(" ", "_")
-
-            file_position = get_name_with_escape_signs(f"/{self.directory}/{temp_file.get_name()}")
-            new_position = get_name_with_escape_signs(f"/{self.directory}/{new_directory}/{target_name}")
-
-            call(f'mv {file_position} {new_position}', shell=True)
-
-        # log to console
-        self.log_result(clean_list)
+        self.move(clean_list)
 
     def check_same_objects(self, directory_name, temp_file):
         ordinal_number = ""
@@ -302,6 +285,41 @@ class DownloadsFolder:
                     validator.append(result[extension])
         return set(validator)
 
+    def move(self, work_list, directory=""):
+        result = []
+        for file in work_list:
+            if directory == "":
+                temp_file = File(file)
+                new_directory = self._create_or_define(temp_file)
+                origin_folder = ""
+            else:
+                new_directory = directory
+                origin_folder = "/" + file.split("/")[0]
+                temp_file = File(file.split("/")[-1])
+
+            if not file.startswith(new_directory):
+                result.append(file)
+
+                # same name case
+                ordinal_number = self.check_same_objects(new_directory, temp_file)
+
+                # extension case
+                temp_extension = ""
+                if temp_file.get_extension():
+                    temp_extension = '.' + temp_file.get_extension()
+
+                target_name = temp_file.get_just_name() + ordinal_number + temp_extension
+
+                if self.underscore_flag:
+                    target_name = target_name.replace(" ", "_")
+
+                file_position = get_name_with_escape_signs(f"/{self.directory}{origin_folder}/{temp_file.get_name()}")
+                new_position = get_name_with_escape_signs(f"/{self.directory}/{new_directory}/{target_name}")
+
+                call(f'mv {file_position} {new_position}', shell=True)
+
+        self.log_result(result)
+
     def move_files(self, extension):
         """
         Moving files by extension to chosen directory
@@ -312,29 +330,13 @@ class DownloadsFolder:
             self.possibilities = {str(folder): folder for folder in self.folders}
         files_with_extension = self.collect_extensions(extension)
         folders_containing = set([file.split("/")[0] for file in files_with_extension])
-
         directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
                           f" {', '.join(folders_containing)}\n"
                           f"Where do you want to put them?\n"
                           f"({', '.join(self.possibilities.keys())})\n")
-        result = []
         while True:
             if directory in self.possibilities:
-                for file in files_with_extension:
-                    if not file.startswith(directory):
-                        result.append(file)
-
-                        temp_file = File(file.split("/")[-1])
-                        ordinal_number = self.check_same_objects(directory, temp_file)
-                        temp_extension = ""
-                        if temp_file.get_extension():
-                            temp_extension = '.' + temp_file.get_extension()
-                        target_name = (temp_file.get_just_name() + ordinal_number + temp_extension)
-                        direction_file = get_name_with_escape_signs(target_name)
-                        escaped_file = get_name_with_escape_signs(file)
-                        call(f'mv {self.directory}/{escaped_file} {self.directory}/{directory}/{direction_file}',
-                             shell=True)
-                self.log_result(result)
+                self.move(files_with_extension, directory)
                 break
             else:
                 print("Invalid Input")
@@ -367,11 +369,8 @@ def get_name_with_escape_signs(item):
     return ''.join(["\\" + character for character in item])
 
 
-def run_cleaning(underscore_flag=True):
+def run_cleaning():
     """ method designed for running program, like basic interface
-
-    :param underscore_flag:
-    :return:
     """
     default_directory = "/home/" + getpass.getuser() + "/Downloads"
 
@@ -387,7 +386,7 @@ def run_cleaning(underscore_flag=True):
 
     cleaner = DownloadsFolder(default_directory)
     cleaner.organize()
-    cleaner.clean(underscore_flag=underscore_flag)
+    cleaner.clean()
 
 
 if __name__ == '__main__':
