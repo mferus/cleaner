@@ -97,8 +97,7 @@ class File:
 
     def get_next_number(self):
         """get next number for file: case if file is duplicated"""
-        print(re.findall(r".+([1-9]+)$", self.name))
-        if re.findall(r".+\([1-9]+\)$", self.name):
+        if re.findall(r".+\([1-9]+\)" + "." + self.get_extension(), self.name):
             result = ""
             iterator = len(self.name) - 1
             not_found = True
@@ -107,9 +106,9 @@ class File:
                     result = self.name[iterator:]
                     not_found = False
                 iterator -= 1
-            return int(''.join([char for char in result if char.isdigit()]))
+            return int(''.join([char for char in result if char.isdigit()]))+1
         else:
-            return 1
+            return 2
 
 
 class DownloadsFolder:
@@ -187,10 +186,7 @@ class DownloadsFolder:
         for file in files:
             if file.get_name() == temp_file.get_name():
                 number = file.get_next_number()
-                if number:
-                    ordinal_number = f" ({number+1})"
-                else:
-                    ordinal_number = " (2)"
+                ordinal_number = f" ({number})"
         return ordinal_number
 
     def _add_all_files(self, folder):
