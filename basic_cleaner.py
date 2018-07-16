@@ -97,7 +97,8 @@ class File:
 
     def get_next_number(self):
         """get next number for file: case if file is duplicated"""
-        if re.findall(r".+ \([1-9]+\)$", self.name):
+        print(re.findall(r".+([1-9]+)$", self.name))
+        if re.findall(r".+\([1-9]+\)$", self.name):
             result = ""
             iterator = len(self.name) - 1
             not_found = True
@@ -119,7 +120,7 @@ class DownloadsFolder:
         directory (str): path to directory to make
         folders (list): list containing all folders in directory
         possibilities (dict): dictionary to store folders name
-        underscore_flag(bool): boolean to store if we want to replace spaces with underscores
+        underscore_flag (bool): boolean to store if we want to replace spaces with underscores
     """
     def __init__(self, directory):
         self.directory = directory
@@ -140,7 +141,7 @@ class DownloadsFolder:
 
     def get_folders(self):
         """
-        return list containing all folders objects in directory
+        :return: (list) containing all folders objects in directory
         """
         return self.folders
 
@@ -159,23 +160,20 @@ class DownloadsFolder:
         """
         search for all folders and file with specific extensions stored within them
         """
-        downloads_list = [pos for pos in (os.popen(f'ls {self.directory}').read()).split("\n")[:-1]
-                          if os.path.isdir(f"{self.directory}/{pos}")]
-        for folder in downloads_list:
-            temp_folder = Folder(folder)
-            self._add_folder(temp_folder)
-            self._add_all_files(temp_folder)
+        for position in (os.popen(f'ls {self.directory}').read()).split("\n")[:-1]:
+            if os.path.isdir(f"{self.directory}/{position}"):
+                temp_folder = Folder(position)
+                self._add_folder(temp_folder)
+                self._add_all_files(temp_folder)
+
         self._validate_extensions()
 
     def clean(self):
-        """
-        Using stored data (found by organize method) to move files in main directory to specific folders
-        """
-
+        """Using stored data (found by organize method) to move files in main directory to specific folders"""
         # file list in main directory
         clean_list = [pos for pos in (os.popen(f'ls {self.directory}').read()).split("\n")[:-1]
                       if os.path.isfile(f"{self.directory}/{pos}")]
-        self.move(clean_list)
+        self.move_files(clean_list)
 
     def check_same_objects(self, directory_name, temp_file):
         """ method to look for duplicates
@@ -283,7 +281,7 @@ class DownloadsFolder:
             while True:
                 if decision.lower() == "move":
                     for record in valid_set:
-                        self.move_files(record)
+                        self.move_files_with_extension(record)
                     break
                 elif decision.lower() == "basic":
                     break
@@ -309,7 +307,7 @@ class DownloadsFolder:
                     validator.append(result[extension])
         return set(validator)
 
-    def move(self, work_list, directory=""):
+    def move_files(self, work_list, directory=""):
         """ moving file to specific directory
 
         :param work_list: files to move
@@ -349,7 +347,7 @@ class DownloadsFolder:
 
         self.log_result(result)
 
-    def move_files(self, extension):
+    def move_files_with_extension(self, extension):
         """
         Moving files by extension to chosen directory
         :param extension:
@@ -365,7 +363,7 @@ class DownloadsFolder:
                           f"({', '.join(self.possibilities.keys())})\n")
         while True:
             if directory in self.possibilities:
-                self.move(files_with_extension, directory)
+                self.move_files(files_with_extension, directory)
                 break
             else:
                 print("Invalid Input")
