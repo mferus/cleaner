@@ -97,7 +97,7 @@ class File:
 
     def get_next_number(self):
         """get next number for file: case if file is duplicated"""
-        if re.findall(r".+\([1-9]+\)" + "." + self.get_extension(), self.name):
+        if re.findall(r".+\([0-9]+\)" + "." + self.get_extension(), self.name):
             result = ""
             iterator = len(self.name) - 1
             not_found = True
