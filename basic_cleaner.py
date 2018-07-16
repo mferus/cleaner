@@ -48,10 +48,20 @@ class Folder:
         return self.files
 
     def get_files(self):
+        """ get list of files in Folder
+
+        :return: (list) files that exists in folder
+        """
         return [file for file in self.files]
 
 
 class File:
+    """
+    Class to represent a file
+
+    Attribute:
+        name (str): file name
+    """
     def __init__(self, name):
         self.name = name
 
@@ -62,6 +72,10 @@ class File:
         return self.__str__()
 
     def create_extension(self, extension):
+        """ create extension for file if extension doesn't exist
+        :param extension: (str) temporary extension added to a file
+        :return:
+        """
         if not self.get_extension():
             self.name += '.' + extension
 
@@ -75,12 +89,14 @@ class File:
         return self.__str__()
 
     def get_just_name(self):
+        """get name without extension"""
         if '.' in self.name:
             return ''.join(self.name.split(".")[:-1])
         else:
             return self.__str__()
 
     def get_next_number(self):
+        """get next number for file: case if file is duplicated"""
         if re.findall(r".+ \([1-9]+\)$", self.name):
             result = ""
             iterator = len(self.name) - 1
@@ -102,6 +118,8 @@ class DownloadsFolder:
     Attributes:
         directory (str): path to directory to make
         folders (list): list containing all folders in directory
+        possibilities (dict): dictionary to store folders name
+        underscore_flag(bool): boolean to store if we want to replace spaces with underscores
     """
     def __init__(self, directory):
         self.directory = directory
@@ -110,10 +128,7 @@ class DownloadsFolder:
         self.underscore_flag = True
 
     def _add_folder(self, item):
-        """ Adds folder obj to folder list
-
-        Args:
-            item (Folder): Folder object to add
+        """ item (Folder): Folder object to add
         """
         self.folders.append(item)
 
@@ -130,6 +145,10 @@ class DownloadsFolder:
         return self.folders
 
     def _search_for_extension(self, searched_extension):
+        """ Searching for extensions in folders that exists in DownloadsFolders
+        :param searched_extension: extension to search
+        :return: folder if extension, or empty string if extension is not found
+        """
         for folder in self.folders:
             for extension in folder.get_extensions():
                 if searched_extension == extension:
@@ -159,6 +178,11 @@ class DownloadsFolder:
         self.move(clean_list)
 
     def check_same_objects(self, directory_name, temp_file):
+        """ method to look for duplicates
+        :param directory_name: directory to search for duplicates
+        :param temp_file: file object to look for
+        :return: next number, if required
+        """
         ordinal_number = ""
         files = self.possibilities[directory_name].get_files()
 
@@ -286,6 +310,11 @@ class DownloadsFolder:
         return set(validator)
 
     def move(self, work_list, directory=""):
+        """ moving file to specific directory
+
+        :param work_list: files to move
+        :param directory: where to move (if empty, defined during program run)
+        """
         result = []
         for file in work_list:
             if directory == "":
@@ -356,6 +385,9 @@ class DownloadsFolder:
 
     @staticmethod
     def log_result(result_list, directory=None):
+        """
+        printing effects of work to console
+        """
         if not result_list:
             result = "No cleaning were required"
         else:
