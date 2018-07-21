@@ -181,12 +181,13 @@ class DownloadsFolder:
         :return: next number, if required
         """
         ordinal_number = ""
-        files = self.possibilities[directory_name].get_files()
+        if directory_name in self.possibilities:
+            files = self.possibilities[directory_name].get_files()
 
-        for file in files:
-            if file.get_name() == temp_file.get_name():
-                number = file.get_next_number()
-                ordinal_number = f" ({number})"
+            for file in files:
+                if file.get_name() == temp_file.get_name():
+                    number = file.get_next_number()
+                    ordinal_number = f" ({number})"
         return ordinal_number
 
     def _add_all_files(self, folder):
@@ -206,8 +207,7 @@ class DownloadsFolder:
         :param unsupported_file: file with unsupported extension
         :return folder ready where program should move file
         """
-        if not self.possibilities:
-            self.possibilities = {str(folder): folder for folder in self.folders}
+        self.possibilities = {str(folder): folder for folder in self.folders}
 
         if unsupported_file.get_extension():
             search = self._search_for_extension(unsupported_file.get_extension())
@@ -253,8 +253,7 @@ class DownloadsFolder:
         :param unsupported_file: unsupported file
         :return: directory (str) where file should be moved
         """
-        if not self.possibilities:
-            self.possibilities = {str(folder): folder for folder in self.folders}
+        self.possibilities = {str(folder): folder for folder in self.folders}
         while True:
             directory = input(f"Pick folder where file {unsupported_file.get_name()} extension should be moved: ")
             if directory in self.possibilities:
@@ -297,7 +296,7 @@ class DownloadsFolder:
         occur_list = [result.count(phrase) for phrase in result]
 
         validator = []
-        if max(occur_list) > 1:
+        if occur_list:
             for extension in range(len(result)):
                 if occur_list[extension] > 1:
                     validator.append(result[extension])
@@ -349,8 +348,8 @@ class DownloadsFolder:
         :param extension:
         :return:
         """
-        if not self.possibilities:
-            self.possibilities = {str(folder): folder for folder in self.folders}
+        self.possibilities = {str(folder): folder for folder in self.folders}
+
         files_with_extension = self.collect_extensions(extension)
         folders_containing = set([file.split("/")[0] for file in files_with_extension])
         directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
