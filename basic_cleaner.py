@@ -209,23 +209,26 @@ class DownloadsFolder:
         """
         self.possibilities = {str(folder): folder for folder in self.folders}
 
-        if unsupported_file.get_extension():
-            search = self._search_for_extension(unsupported_file.get_extension())
-            if search:
-                return search
-            print(f"File {unsupported_file} has unsupported extension: '{unsupported_file.get_extension()}'.")
-        else:
-            print(f"File '{unsupported_file}' has no extension.")
-        while True:
-            create_folder = input(f"Do you want to create new folder for this file? [y/N]:\n"
-                                  f"(Folders: {', '.join(self.possibilities.keys())}) ")
-            if create_folder.lower() == "y":
-                return self._create_folder(unsupported_file)
-
-            elif create_folder.lower() == "n" or create_folder == "":
-                return self._define_extension_folder(unsupported_file)
+        if self.possibilities:
+            if unsupported_file.get_extension():
+                search = self._search_for_extension(unsupported_file.get_extension())
+                if search:
+                    return search
+                print(f"----\nFile {unsupported_file} has unsupported extension: '{unsupported_file.get_extension()}'.")
             else:
-                print("Invalid input")
+                print(f"----\nFile '{unsupported_file}' has no extension.")
+            while True:
+                create_folder = input(f"Do you want to create new folder for this file? [y/N]:\n"
+                                      f"(Folders: {', '.join(self.possibilities.keys())})\n")
+                if create_folder.lower() == "y":
+                    return self._create_folder(unsupported_file)
+
+                elif create_folder.lower() == "n" or create_folder == "":
+                    return self._define_extension_folder(unsupported_file)
+                else:
+                    print("Invalid input")
+        else:
+            return self._create_folder(unsupported_file)
 
     def _create_folder(self, unsupported_file):
         """create folder for unsupported extension
@@ -233,9 +236,14 @@ class DownloadsFolder:
         :param unsupported_file: file object
         :return folder (str) created for purpose specific extension
         """
+        if not self.possibilities:
+            print(f"----\nNo folders found in directory. Please enter directory name for "
+                  f"{unsupported_file} file:\n")
+        else:
+            print("Please enter directory name:\n")
 
         while True:
-            folder_name = input("Please enter directory name: ")
+            folder_name = input()
             checker = [True if char.isalnum() else False for char in folder_name]
             if False not in checker and folder_name not in self.possibilities.keys():
                 call(f"mkdir {self.directory}/{folder_name}", shell=True)
@@ -243,6 +251,7 @@ class DownloadsFolder:
                 self._add_folder(temp_folder)
                 if unsupported_file.get_extension():
                     temp_folder.add_file(unsupported_file)
+                self.possibilities = {str(folder): folder for folder in self.folders}
                 return folder_name
             else:
                 print("Invalid input")
@@ -253,9 +262,10 @@ class DownloadsFolder:
         :param unsupported_file: unsupported file
         :return: directory (str) where file should be moved
         """
-        self.possibilities = {str(folder): folder for folder in self.folders}
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
         while True:
-            directory = input(f"Pick folder where file {unsupported_file.get_name()} extension should be moved: ")
+            directory = input(f"Pick folder where file {unsupported_file.get_name()} extension should be moved: \n")
             if directory in self.possibilities:
                 if unsupported_file.get_extension():
                     self.possibilities[directory].add_file(unsupported_file)
@@ -348,7 +358,8 @@ class DownloadsFolder:
         :param extension:
         :return:
         """
-        self.possibilities = {str(folder): folder for folder in self.folders}
+        if not self.possibilities:
+            self.possibilities = {str(folder): folder for folder in self.folders}
 
         files_with_extension = self.collect_extensions(extension)
         folders_containing = set([file.split("/")[0] for file in files_with_extension])
