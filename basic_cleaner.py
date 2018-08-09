@@ -240,7 +240,7 @@ class DownloadsFolder:
             print(f"----\nNo folders found in directory. Please enter directory name for "
                   f"{unsupported_file} file:\n")
         else:
-            print("Please enter directory name:\n")
+            print("Please enter directory name:")
 
         while True:
             folder_name = input()
