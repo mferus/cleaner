@@ -5,21 +5,7 @@ import getpass
 
 
 class Folder:
-    """
-    Class to represent a folder with assigned extensions
-
-    Attributes:
-        folder (str): folder name
-        files (list): file that exists in folder
-    """
     def __init__(self, folder):
-        """
-        Folder init method
-
-        Args:
-
-        :param folder: folder name
-        """
         self.folder = folder
         self.files = []
 
@@ -33,35 +19,19 @@ class Folder:
         self.files.append(item)
 
     def get_name(self):
-        """
-        :return: end path of the folder
-        """
         return self.folder
 
     def get_extensions(self):
-        """
-        :return: list of all extensions found in folder
-        """
         return set([file.get_extension() for file in self.files])
 
     def get_file(self):
         return self.files
 
     def get_files(self):
-        """ get list of files in Folder
-
-        :return: (list) files that exists in folder
-        """
         return [file for file in self.files]
 
 
 class File:
-    """
-    Class to represent a file
-
-    Attribute:
-        name (str): file name
-    """
     def __init__(self, name):
         self.name = name
 
@@ -72,10 +42,7 @@ class File:
         return self.__str__()
 
     def create_extension(self, extension):
-        """ create extension for file if extension doesn't exist
-        :param extension: (str) temporary extension added to a file
-        :return:
-        """
+        """ create extension for file if extension doesn't exist"""
         if not self.get_extension():
             self.name += '.' + extension
 
@@ -117,9 +84,9 @@ class DownloadsFolder:
 
     Attributes:
         directory (str): path to directory to make
-        folders (list): list containing all folders in directory
-        possibilities (dict): dictionary to store folders name
-        underscore_flag (bool): boolean to store if we want to replace spaces with underscores
+        folders (list): containing all folders in directory
+        possibilities (dict): store folders name
+        underscore_flag (bool): store if we want to replace spaces with underscores
     """
     def __init__(self, directory):
         self.directory = directory
@@ -203,7 +170,6 @@ class DownloadsFolder:
 
     def _create_or_define(self, unsupported_file):
         """method to define solution for unsupported extensions: create new folder or add to existing one?
-
         :param unsupported_file: file with unsupported extension
         :return folder ready where program should move file
         """
