@@ -258,11 +258,12 @@ class ChosenFolderHandler:
 
         files_with_extension = self.collect_extensions(extension)
         folders_containing = set([file.split("/")[0] for file in files_with_extension])
-        directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
-                          f" {', '.join(folders_containing)}\n"
-                          f"Where do you want to put them?\n"
-                          f"({', '.join(self.possibilities.keys())})\n")
         while True:
+            directory = input(f"Files with '{extension}' extension are scattered in your folders:\n"
+                              f" {', '.join(folders_containing)}\n"
+                              f"Where do you want to put them?\n"
+                              f"({', '.join(self.possibilities.keys())})\n")
+        # while True:
             if directory in self.possibilities:
                 self.move_files(files_with_extension, directory)
                 break
@@ -288,7 +289,7 @@ class ChosenFolderHandler:
         printing effects of work to console
         """
         if not result_list:
-            result = "No cleaning were required"
+            result = "No cleaning was required"
         else:
             file_verb = "file was" if len(result_list) == 1 else "files were"
             directory_verb = f" to directory {directory}" if directory else ""
