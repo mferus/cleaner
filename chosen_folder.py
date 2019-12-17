@@ -263,7 +263,6 @@ class ChosenFolderHandler:
                               f" {', '.join(folders_containing)}\n"
                               f"Where do you want to put them?\n"
                               f"({', '.join(self.possibilities.keys())})\n")
-        # while True:
             if directory in self.possibilities:
                 self.move_files(files_with_extension, directory)
                 break
