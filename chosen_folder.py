@@ -275,7 +275,7 @@ class ChosenFolderHandler:
         :param extension:
         :return:
         """
-        occurs = os.popen(f'find {self.directory} -maxdepth 2 -name *.{extension}')
+        occurs = os.popen(f'find {self.directory} -maxdepth 2 -name \'*.{extension}\'')
         result = []
         for occur in occurs:
             temp_path = occur.replace(f"{self.directory}/", "")[:-1]
