@@ -21,7 +21,7 @@ class Cleaner:
                               f"If it's not, please input correct directory: ")
             if directory != "" and os.path.isdir(directory):
                 break
-            elif directory == "":
+            elif directory == "" and os.path.isdir(default_directory):
                 directory = default_directory
                 break
             else:
