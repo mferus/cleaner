@@ -34,7 +34,7 @@ class File:
 
     def get_next_number(self):
         """get next number for file: case if file is duplicated"""
-        if re.findall(r".+\([0-9]+\)" + "." + self.get_extension(), self.name):
+        if re.findall(r".+\(\d+\)" + "." + self.get_extension(), self.name):
             result = ""
             iterator = len(self.name) - 1
             not_found = True
@@ -46,3 +46,7 @@ class File:
             return int(''.join([char for char in result if char.isdigit()]))+1
         else:
             return 2
+
+
+class PlaceHolderFile(File):
+    pass

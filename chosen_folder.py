@@ -1,7 +1,7 @@
 import os
 from subprocess import call
 
-from file import File
+from file import File, PlaceHolderFile
 from folder import Folder
 
 
@@ -12,14 +12,16 @@ class ChosenFolderHandler:
     Attributes:
         directory (str): path to directory to make
         folders (list): containing all folders in directory
-        possibilities (dict): store folders name
         underscore_flag (bool): store if we want to replace spaces with underscores
     """
     def __init__(self, directory):
         self.directory = directory
         self.folders = []
-        self.possibilities = {}
         self.underscore_flag = True
+
+    @property
+    def possibilities(self):
+        return {str(folder): folder for folder in self.folders}
 
     def _add_folder(self, item):
         """ item (Folder): Folder object to add
@@ -79,7 +81,7 @@ class ChosenFolderHandler:
             files = self.possibilities[directory_name].get_files()
 
             for file in files:
-                if file.get_name() == temp_file.get_name():
+                if not isinstance(file, PlaceHolderFile) and file.get_name() == temp_file.get_name():
                     number = file.get_next_number()
                     ordinal_number = f" ({number})"
         return ordinal_number
@@ -100,7 +102,6 @@ class ChosenFolderHandler:
         :param unsupported_file: file with unsupported extension
         :return folder ready where program should move file
         """
-        self.possibilities = {str(folder): folder for folder in self.folders}
 
         if self.possibilities:
             if unsupported_file.get_extension():
@@ -144,7 +145,6 @@ class ChosenFolderHandler:
                 self._add_folder(temp_folder)
                 if unsupported_file.get_extension():
                     temp_folder.add_file(unsupported_file)
-                self.possibilities = {str(folder): folder for folder in self.folders}
                 return folder_name
             else:
                 print("Invalid input")
@@ -155,13 +155,11 @@ class ChosenFolderHandler:
         :param unsupported_file: unsupported file
         :return: directory (str) where file should be moved
         """
-        if not self.possibilities:
-            self.possibilities = {str(folder): folder for folder in self.folders}
         while True:
             directory = input(f"Pick folder where file {unsupported_file.get_name()} extension should be moved: \n")
             if directory in self.possibilities:
                 if unsupported_file.get_extension():
-                    self.possibilities[directory].add_file(unsupported_file)
+                    self.possibilities[directory].add_file(PlaceHolderFile(unsupported_file.name))
                 return directory
             else:
                 print("Invalid input")
@@ -253,8 +251,6 @@ class ChosenFolderHandler:
         :param extension:
         :return:
         """
-        if not self.possibilities:
-            self.possibilities = {str(folder): folder for folder in self.folders}
 
         files_with_extension = self.collect_extensions(extension)
         folders_containing = set([file.split("/")[0] for file in files_with_extension])
