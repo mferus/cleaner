@@ -10,7 +10,7 @@ class ConfigHandler:
     def get(cls, parameter):
         config = configparser.ConfigParser()
         config.read(cls.config_file)
-        return config['DEFAULT'][parameter]
+        return config["DEFAULT"][parameter]
 
     @classmethod
     def add(cls, **kwargs):
@@ -19,7 +19,7 @@ class ConfigHandler:
             config_container.update({kwarg: kwargs[kwarg]})
 
         config = configparser.ConfigParser()
-        config['DEFAULT'] = config_container
+        config["DEFAULT"] = config_container
 
-        with open(cls.config_file, 'w') as configFile:
+        with open(cls.config_file, "w") as configFile:
             config.write(configFile)

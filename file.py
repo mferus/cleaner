@@ -11,13 +11,16 @@ class File:
     def __repr__(self):
         return self.__str__()
 
+    def __eq__(self, other):
+        return self.name == other.name
+
     def create_extension(self, extension):
-        """ create extension for file if extension doesn't exist"""
+        """create extension for file if extension doesn't exist"""
         if not self.get_extension():
-            self.name += '.' + extension
+            self.name += "." + extension
 
     def get_extension(self):
-        if '.' in self.name:
+        if "." in self.name:
             return self.name.split(".")[-1]
         else:
             return ""
@@ -27,8 +30,8 @@ class File:
 
     def get_just_name(self):
         """get name without extension"""
-        if '.' in self.name:
-            return ''.join(self.name.split(".")[:-1])
+        if "." in self.name:
+            return "".join(self.name.split(".")[:-1])
         else:
             return self.__str__()
 
@@ -43,7 +46,7 @@ class File:
                     result = self.name[iterator:]
                     not_found = False
                 iterator -= 1
-            return int(''.join([char for char in result if char.isdigit()]))+1
+            return int("".join([char for char in result if char.isdigit()])) + 1
         else:
             return 2
 
