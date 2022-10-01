@@ -1,5 +1,5 @@
 import os
-from typing import Dict
+from typing import Dict, List
 
 from file import File, PlaceHolderFile
 from folder import Folder
@@ -18,7 +18,7 @@ class ChosenFolderHandler:
 
     def __init__(self, directory, dry_run, underscore_flag):
         self.directory: str = directory
-        self.folders: [Folder] = []
+        self.folders: List[Folder] = []
         self.underscore_flag: bool = underscore_flag
         self.dry_run: bool = dry_run
         os.chdir(self.directory)
@@ -27,7 +27,7 @@ class ChosenFolderHandler:
     def possibilities(self) -> Dict[str, Folder]:
         return {str(folder): folder for folder in self.folders}
 
-    def _search_for_extension(self, searched_extension):
+    def _search_for_extension(self, searched_extension: str) -> str:
         """Searching for extensions in folders that exists in DownloadsFolders
         :param searched_extension: extension to search
         :return: folder if extension, or empty string if extension is not found
@@ -73,10 +73,9 @@ class ChosenFolderHandler:
         return number
 
     @staticmethod
-    def _add_all_files(folder):
+    def _add_all_files(folder: Folder):
         """add all extensions found in folder
-        Args:
-            folder (Folder): folder as holder of possible extensions
+        folder: folder as holder of possible extensions
         """
         file_list = [
             position
@@ -88,10 +87,9 @@ class ChosenFolderHandler:
             temp_file = File(position)
             folder.files.append(temp_file)
 
-    def _create_or_define(self, unsupported_file) -> str:
+    def _create_or_define(self, unsupported_file: File) -> str:
         """method to define solution for unsupported extensions: create new folder or add to existing one?
-        :param unsupported_file: file with unsupported extension
-        :return folder ready where program should move file
+        :return: folder ready where program should move file
         """
 
         if self.possibilities:
@@ -123,11 +121,9 @@ class ChosenFolderHandler:
         else:
             return self._create_folder(unsupported_file)
 
-    def _create_folder(self, unsupported_file):
+    def _create_folder(self, unsupported_file: File) -> str:
         """create folder for unsupported extension
-
-        :param unsupported_file: file object
-        :return folder (str) created for purpose specific extension
+        :return: folder created for purpose specific extension
         """
         if not self.possibilities:
             print(
@@ -145,16 +141,14 @@ class ChosenFolderHandler:
                 temp_folder = Folder(folder_name)
                 self.folders.append(temp_folder)
                 if unsupported_file.get_extension():
-                    temp_folder.files.append(unsupported_file)
+                    temp_folder.files.append(PlaceHolderFile(unsupported_file.name))
                 return folder_name
             else:
                 print("Invalid input")
 
-    def _define_extension_folder(self, unsupported_file):
+    def _define_extension_folder(self, unsupported_file: File) -> str:
         """Define folder for unsupported extension
-
-        :param unsupported_file: unsupported file
-        :return: directory (str) where file should be moved
+        :return: directory where file should be moved
         """
         while True:
             directory = input(
@@ -210,7 +204,7 @@ class ChosenFolderHandler:
                     validator.append(result[extension])
         return set(validator)
 
-    def move_files(self, files, directory=""):
+    def move_files(self, files: List[str], directory=""):
         """moving file to specific directory
         :param files: files to move
         :param directory: where to move (if empty, defined during program run)
@@ -268,7 +262,7 @@ class ChosenFolderHandler:
 
         self.log_result(result, directory)
 
-    def move_files_with_extension(self, extension):
+    def move_files_with_extension(self, extension: str):
         """
         Moving files by extension to chosen directory
         :param extension:
@@ -296,12 +290,8 @@ class ChosenFolderHandler:
             else:
                 print("Invalid Input")
 
-    def collect_files_with_extensions(self, extension):
-        """Collect all files with specific extension
-
-        :param extension:
-        :return:
-        """
+    def collect_files_with_extensions(self, extension: str) -> List[str]:
+        """Collect all files with specific extension"""
         occurrences = []
         for position in os.listdir(self.directory):
             if os.path.isdir(position):
